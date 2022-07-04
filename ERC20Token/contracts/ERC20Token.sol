@@ -6,13 +6,19 @@ import "./IERC20.sol";
 // token contract from scracth 
 contract ERC20Token is IERC20 {
   address public owner;
-  uint public totalSupply;
-  mapping(address => uint) public balanceOf;
-  mapping(address => mapping(address => uint)) public allowance;
+  
+  // token details 
   string public name;
   string public symbol;
   uint8 public decimals;
+  
+  uint public totalSupply;
 
+  // balance of an address 
+  mapping(address => uint) public balanceOf;
+  // amount allowed to spend on another address's behalf 
+  mapping(address => mapping(address => uint)) public allowance;
+  
   constructor (string memory _name, string memory _symbol, uint8 _decimals) {
     owner = msg.sender;
     name = _name;
@@ -21,24 +27,26 @@ contract ERC20Token is IERC20 {
     super;
   }
 
-  function transfer(address recipient, uint amount) external returns (bool) {
+  modifier lowBalance(address sender, uint amount) {
+    require(balanceOf[sender] >= amount, "not enough tokens available");
+    _;
+  }
+
+  function transfer(address recipient, uint amount) external lowBalance(msg.sender ,amount) returns (bool) {
     balanceOf[msg.sender] -= amount;
     balanceOf[recipient] += amount;
     emit Transfer(msg.sender, recipient, amount);
     return true;
   }
 
-  function approve(address spender, uint amount) external returns (bool) {
+  function approve(address spender, uint amount) external lowBalance(msg.sender, amount) returns (bool) {
     allowance[msg.sender][spender] = amount;
     emit Approval(msg.sender, spender, amount);
     return true;
   }
 
-  function transferFrom(
-    address sender,
-    address recipient,
-    uint amount
-  ) external returns (bool) {
+  function transferFrom(address sender, address recipient, uint amount) external lowBalance(sender, amount) returns (bool) {
+    // should cause over/underflow errors
     allowance[sender][msg.sender] -= amount;
     balanceOf[sender] -= amount;
     balanceOf[recipient] += amount;
@@ -46,14 +54,14 @@ contract ERC20Token is IERC20 {
     return true;
   }
 
-  function mint(uint amount) external {
+  function mint(address recipient, uint amount) external {
     require(msg.sender == owner, "only owner can mint new tokens");
-    balanceOf[msg.sender] += amount;
+    balanceOf[recipient] += amount;
     totalSupply += amount;
-    emit Transfer(address(0), msg.sender, amount);
+    emit Transfer(address(0), recipient, amount);
   }
 
-  function burn(uint amount) external {
+  function burn(uint amount) external lowBalance(msg.sender, amount) {
     balanceOf[msg.sender] -= amount;
     totalSupply -= amount;
     emit Transfer(msg.sender, address(0), amount);
