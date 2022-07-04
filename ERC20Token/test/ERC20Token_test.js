@@ -50,7 +50,7 @@ contract("ERC20Token", (accounts) => {
     });
     // add some token for burning tests 
     beforeEach(async () => {
-      await this.token.mint(owner, amount);
+      this.receipt = await this.token.mint(owner, amount);
     });
 
     it('should update balance of recipient', async () => {
@@ -94,7 +94,7 @@ contract("ERC20Token", (accounts) => {
 
     it('should check for available tokens', async () => {
       // transfer more amount than available 
-      return truffleAssert.fails(this.token.transfer(account1, amount * 2), truffleAssert.ErrorType.REVERT, 'not enough tokens available');
+      return await truffleAssert.fails(this.token.transfer(account1, amount * 2), truffleAssert.ErrorType.REVERT, 'not enough tokens available');
     });
 
     it('should update balances', async () => {
@@ -107,8 +107,8 @@ contract("ERC20Token", (accounts) => {
 
     it('should emit transfer event', () => {
       truffleAssert.eventEmitted(this.receipt, 'Transfer', 
-      (ev) => {return ev.from === owner && ev.to === account1, ev.value.toNumber() === amount},
-      'should trigger transfer event');
+        (ev) => {return ev.from === owner && ev.to === account1, ev.value.toNumber() === amount},
+        'should trigger transfer event');
     }); 
   });
 
@@ -124,7 +124,7 @@ contract("ERC20Token", (accounts) => {
 
     it('should check for approver balance', async () => {
       // try to allocate double the available amount 
-      return truffleAssert.fails(this.token.approve(account1, amount*2), truffleAssert.ErrorType.REVERT, 'not enough tokens available')
+      return await truffleAssert.fails(this.token.approve(account1, amount*2), truffleAssert.ErrorType.REVERT, 'not enough tokens available')
     }); 
 
     it('should update approved amount', async () => {
@@ -136,49 +136,63 @@ contract("ERC20Token", (accounts) => {
     
     it('should emit approval event', async () => {
       truffleAssert.eventEmitted(this.receipt, 'Approval', 
-      (ev) => {return ev.owner === owner, ev.spender === account1, ev.value.toNumber() === amount}, 
-      'should trigger approval event');
+        (ev) => {return ev.owner === owner, ev.spender === account1, ev.value.toNumber() === amount}, 
+        'should trigger approval event');
+    });
+
+    // add some token for burning tests 
+    after(async () => {
+      // clear state for further tests
+      await this.token.approve(account1, 0);
+      await this.token.burn(amount);
     });
   });
 
-  // describe('transferFrom', () => {
-  //   // get contract instance 
-  //   before(async () => {
-  //     this.token = await ERC20.deployed();
-  //   });
-  //   // add some token for burning tests 
-  //   before(async () => {
-  //     await this.token.mint(owner, amount);
-  //     // approve amount for spending
-  //     await this.token.approve(account1, amount);
-  //   });
+  describe('transferFrom', () => {
+    // get contract instance 
+    before(async () => {
+      this.token = await ERC20.deployed();
+    });
+    // add some token for burning tests 
+    before(async () => {
+      await this.token.mint(owner, amount);
+    });
 
-  //   it('should only allow approved amount to be spent', async () => {
-  //     // try to spend amount, when none is allocated [account2 is not approved to spend any]
-  //     truffleAssert.fails(this.token.transferFrom(owner, account1, amount, {from: account2}), truffleAssert.ErrorType.REVERT);
-  //     // try to spend "double" than approved amount [account1 is approved to spend amount]
-  //     truffleAssert.fails(this.token.transferFrom(owner, account2, (amount * 2), {from: account1}), truffleAssert.ErrorType.REVERT);
-  //   });
+    before(async () => {
+      // approve amount for spending
+      await this.token.approve(account1, amount);
+    });
 
-  //   it('should check for original account owner\'s balance', async () => {
-  //     // transfer 1 token to some other account [by owner]
-  //     await this.token.transfer(account2, 1);
-  //     // owner now has 1 less token balance than approved for spending
-  //     // try spending full approved amount 
-  //     truffleAssert.fails(this.token.transferFrom(owner, account2, amount, {from: account1}), truffleAssert.ErrorType.REVERT, 'not enough tokens available');
-  //     // transfer back 1 token to owner for further tests
-  //     await this.token.transfer(owner, 1, {from: account2});
-  //   });
+    it('should only allow approved amount to be spent', async () => {
+      // try to spend amount, when none is approved [account2 is not approved to spend any]
+      await truffleAssert.fails(this.token.transferFrom(owner, account1, amount, {from: account2}), truffleAssert.ErrorType.REVERT);
+      // try to spend "double" than approved amount [account1 is approved to spend amount]
+      await truffleAssert.fails(this.token.transferFrom(owner, account2, (amount * 2), {from: account1}), truffleAssert.ErrorType.REVERT);
+    });
 
-  //   it ('should update balances and approved amount', async () => {
-  //     this.receipt = await this.token.transferFrom(owner, account2, amount, {from: account1});
-  //     const ownerBalance = await this.token.balanceOf(owner);
-  //     const account2Balance = await this.token.balanceOf(account2);
-  //     assert.equal(ownerBalance.toNumber(), 0);
-  //     return assert.equal(account2Balance.toNumber(), amount);
-  //   });
+    it('should check for original account owner\'s balance', async () => {
+      // transfer 1 token to some other account [by owner]
+      await this.token.transfer(account2, 1);
+      // owner now has 1 less token balance than approved for spending
+      // try spending full approved amount 
+      await truffleAssert.fails(this.token.transferFrom(owner, account2, amount, {from: account1}), truffleAssert.ErrorType.REVERT, 'not enough tokens available');
+      // transfer back 1 token to owner for further tests
+      await this.token.transfer(owner, 1, {from: account2});
+    });
 
-  //   // test: should emit transfer event
-  // });
+    it ('should update balances and approved amount', async () => {
+      this.receipt = await this.token.transferFrom(owner, account2, amount, {from: account1});
+      const ownerBalance = await this.token.balanceOf(owner);
+      const account2Balance = await this.token.balanceOf(account2);
+      assert.equal(ownerBalance.toNumber(), 0);
+      return assert.equal(account2Balance.toNumber(), amount);
+    });
+
+    it('should emit transfer event', () => {
+      truffleAssert.eventEmitted(this.receipt, 'Transfer', 
+        (ev) => {return ev.from === owner && ev.to === account2 && ev.value.toNumber() === amount;},
+        'should trigger transfer event');
+    });
+  });
 
 });
