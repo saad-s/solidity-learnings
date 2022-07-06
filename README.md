@@ -10,7 +10,7 @@ truffle init .
 truffle create contract MyContract
 truffle create test MyContract
 ```
-create new or edit default migrate file after adding contract.
+create a one new or edit default migration file after adding a contract.
 
 ### Truffle testing  
 ```bash
@@ -30,7 +30,8 @@ truffle(develop)> instance.myPublicFunction({from: accounts[2]})
 truffle(develop)> instance.myPublicFunction({value: web3.utils.toWei("1", "ether")}) 
 ```
 
-### Solidity concepts
+### Solidity 
+Language cheat-sheet is available [here](https://github.com/saad-s/solidity-learnings).
 
 #### Functions visibility 
 * Private - can only be called from inside smart contract
@@ -39,26 +40,27 @@ truffle(develop)> instance.myPublicFunction({value: web3.utils.toWei("1", "ether
 * Public - can be called from anywhere
 
 ```solidity
-function transfer(address recipient, uint amount) external returns (bool) {
-    // add implementation here 
+function myFunction() <visibility specifier> returns (bool) {
+    return true;
 }
 ```
 
 #### Functions modifiers 
+common 
 * View - RO, can only reads from chain
 * Pure - doesn’t interact with chain, 
 * Payable - [TBA]
 
 ```solidity
-function getDetails(uint _number) public view returns (RoomStatus memory) {
-    // add implementation here
+function myFunction() public <modifier> returns (bool) {
+    return true;
 }
 ```
 
 #### Constructors
 Always public [verified?]
 
-#### Language Keywords
+#### Global variables
 Generally language keywords can be described in three categories 
 1. tx
 2. Msg
