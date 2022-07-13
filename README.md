@@ -67,5 +67,5 @@ Generally language keywords can be described in three categories
 3. Block
   
 `tx.origin` vs `msg.sender`
-  1. Alice calls Smart Contract A {`tx.origin`: Alice, `msg.sender`: Alice}
-  2. Smart Contract A calls Smart Contract B {`tx.origin`: Alice, `msg.sender`: Smart Contract A}
+  1. Alice calls Smart Contract A => {`tx.origin`: Alice, `msg.sender`: Alice}
+  2. Smart Contract A calls Smart Contract B => {`tx.origin`: Alice, `msg.sender`: Smart Contract A}
