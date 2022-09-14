@@ -1,6 +1,6 @@
 ### fungible token
 
-ERC20 implementation without using openzeppelin.
+ERC20 implementation without using openzeppelin contracts.
 
 ```bash
 npm i truffle -g

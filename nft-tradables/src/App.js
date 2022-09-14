@@ -2,6 +2,7 @@ import './App.css';
 import React, { useState } from 'react';
 import isMetaMaskInstalled from './components/detectMetamask.js';
 import MetaMaskAuth from './components/auth.js';
+import GetContractDetails from './components/contract.js';
 
 function App() {
   // user address 
@@ -15,8 +16,11 @@ function App() {
   }
 
   return (
-    userAddress? (<div> Connected as {userAddress}</div>) :
-      (<MetaMaskAuth onAddressChanged={setUserAddress} />)
+    userAddress? (<div> 
+      Connected as {userAddress}
+      <GetContractDetails />
+    </div>) :
+    (<MetaMaskAuth onAddressChanged={setUserAddress} />)
   );
 }
 

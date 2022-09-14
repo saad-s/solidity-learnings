@@ -14,6 +14,8 @@ contract ERC20Token is IERC20 {
   
   uint public totalSupply;
 
+  error lowBalanceError(string _errorMsg);
+
   // balance of an address 
   mapping(address => uint) public balanceOf;
   // amount allowed to spend on another address's behalf 
@@ -28,7 +30,9 @@ contract ERC20Token is IERC20 {
   }
 
   modifier lowBalance(address sender, uint amount) {
-    require(balanceOf[sender] >= amount, "not enough tokens available");
+    // require(balanceOf[sender] >= amount, "not enough tokens available");
+    if (balanceOf[sender] < amount)
+      revert lowBalanceError('not enough tokens available');
     _;
   }
 

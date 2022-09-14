@@ -30,8 +30,7 @@ truffle(develop)> instance.myPublicFunction({from: accounts[2]})
 truffle(develop)> instance.myPublicFunction({value: web3.utils.toWei("1", "ether")}) 
 ```
 
-### Solidity 
-Language cheat-sheet is available [here](https://github.com/saad-s/solidity-learnings).
+## Solidity 
 
 #### Functions visibility 
 * Private - can only be called from inside smart contract
@@ -45,22 +44,54 @@ function myFunction() <visibility specifier> returns (bool) {
 }
 ```
 
-#### Functions modifiers 
-common 
+#### Functions state mutability 
 * View - RO, can only reads from chain
 * Pure - doesn’t interact with chain, 
 * Payable - [TBA]
 
 ```solidity
-function myFunction() public <modifier> returns (bool) {
+function myFunction() public view returns (bool) {
     return true;
 }
 ```
 
-#### Constructors
-Always public [verified?]
+#### Functions modifiers 
+Adds conditions to execute before, after or while executing a function. 
+```solidity
+// verifies caller before executing functions 
+modifier onlyOwner {
+    require(msg.sender == owner, "Only owner can call this function.");
+    _;
+}
+// verifies result after function has computed value
+modifier validateResult(uint computedValue) {
+    _;
+    require(computedValue == PI, "Invalid Result");
+}
 
-#### Global variables
+function myFunction() public onlyOwner validateResult(value) view returns (bool) {
+    return true;
+}
+```
+
+### Special Functions 
+
+#### Constructors
+* Optional
+* Executes on contract creation 
+
+#### Init function
+For clones, proxies or libraries an init function is defined instead of a constructor. 
+Should be used generally with a single init or reentrant guard. 
+
+#### Fallback function 
+* Nameless function 
+* Called when other contracts call wrong function name 
+* Called when eth is transferred to this contract 
+* Can only be defined once per contract 
+* Must be external / public 
+
+### Global variables
 Generally language keywords can be described in three categories 
 1. tx
 2. Msg

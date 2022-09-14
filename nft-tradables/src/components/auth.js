@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-// TODO: to be moved in contract component
-import getNetworkDetails from './network.js';
 
 async function connect(onConnected) {
   const accounts = await window.ethereum.request({
@@ -8,8 +6,6 @@ async function connect(onConnected) {
   });
 
   onConnected(accounts[0]);
-  // TODO: to be moved in contract component
-  await getNetworkDetails()
 }
 
 async function checkIfWalletIsConnected(onConnected) {
@@ -21,8 +17,6 @@ async function checkIfWalletIsConnected(onConnected) {
     if (accounts.length > 0) {
       const account = accounts[0];
       onConnected(account);
-      // TODO: to be moved in contract component
-      await getNetworkDetails()
       return;
     }
   }
